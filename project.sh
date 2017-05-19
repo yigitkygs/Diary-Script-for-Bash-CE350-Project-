@@ -10,21 +10,23 @@ then
 
 	exec 3>&1
     choice=$(cat temp)
-    
+         # New Entry is pressed
         if [ "$choice" = "1" ]
         then
 	    name=$(dialog --inputbox "Enter the desired name for your new entry:" 10 30 2>&1 1>&3)
-	    stty -echo
-	    echo "Enter the password for your new entry: "
-	    read PASSWORD
-	    stty echo
+	    pass=$(tempfile 2>/dev/null)
+	    trap "rm -f $pass" 0 1 2 5 15
+	    dialog --title "Password" \
+		   --clear \
+		   --insecure \
+		   --passwordbox "Enter the password for your new entry:" 10 30 2>$pass
 	    echo  "\n"
             dialog --inputbox "Write about your day" 250 250 2>$name
-	    zip --password $PASSWORD diary.zip $name
+	    zip --password $(cat $pass) diary.zip $name
 	    rm -f name
         fi
 
- 
+	# Read Diary is pressed
         if [ "$choice" = "2" ]
         then
             dialog --title "Older Entries" --msgbox "$(unzip -l diary.zip )" 100 100
